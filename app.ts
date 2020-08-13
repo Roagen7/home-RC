@@ -1,6 +1,6 @@
 import { createServer, IncomingHttpHeaders, IncomingMessage, ServerResponse } from 'http';
 //import { query } from 'mysql';
-import { appendFile } from 'fs';
+import { appendFile, readFile, exists, read, fstat } from 'fs';
 import { parse } from 'url';
 
 const host: string = 'localhost';
@@ -13,7 +13,7 @@ createServer((req: IncomingMessage, res: ServerResponse) => {
   res.writeHead(200, { 'Content-type': 'text/html' });
   if (q.pathname == '/message') {
     if (q.query['user'] && q.query['message']) {
-      appendFile('messages.txt', `\n[${q.query.user}]>>${q.query.message}`, (err) => {
+      appendFile('messages.txt', `<br>[${q.query.user}]>>${q.query.message}`, (err) => {
         if (err) throw err;
         console.log('saved!');
       });
@@ -25,14 +25,16 @@ createServer((req: IncomingMessage, res: ServerResponse) => {
   }
 
   if (q.pathname == '/') {
-    res.write(`
-            <form action="/message" method="get">
-                <label for="user">username: <input id="user" name="user" type="text"> </input> </label>
-                <label for="message">message: <input id="message" name="message" type="text"> </input> </label>
-                <label for="sender"><input type="submit"></input></label>
-            </form>
-        `);
+    var chat: string;
+    readFile('messages.txt', (err, data) => {
+      res.write(`<div>${data}</div>
+      <form action="/message" method="get">
+          <label for="user">username: <input id="user" name="user" type="text"> </input> </label>
+          <label for="message">message: <input id="message" name="message" type="text"> </input> </label>
+          <label for="sender"><input type="submit"></input></label>
+      </form>
+    `);
+      res.end();
+    });
   }
-
-  res.end();
 }).listen(port, host, () => console.log(`server listening at http://${host}:${port}`));
