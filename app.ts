@@ -5,7 +5,7 @@ import bodyParser from 'body-parser';
 import mysql from 'mysql';
 
 const host: string = 'localhost';
-const port: number = 3000;
+const port: number = 8080;
 
 const con = mysql.createConnection({
   host,

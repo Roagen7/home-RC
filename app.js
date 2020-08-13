@@ -8,7 +8,7 @@ var express_1 = __importDefault(require("express"));
 var body_parser_1 = __importDefault(require("body-parser"));
 var mysql_1 = __importDefault(require("mysql"));
 var host = 'localhost';
-var port = 3000;
+var port = 8080;
 var con = mysql_1["default"].createConnection({
     host: host,
     user: 'root',
