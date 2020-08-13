@@ -6,6 +6,8 @@ import { parse } from 'url';
 const host: string = 'localhost';
 const port: number = 3000;
 
+//something
+
 createServer((req: IncomingMessage, res: ServerResponse) => {
   const q: any = parse(req.url, true);
   res.writeHead(200, { 'Content-type': 'text/html' });
