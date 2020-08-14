@@ -4,17 +4,50 @@ import bodyParser from 'body-parser';
 
 import createHtmlTemplates from './createHtmlTemplates';
 
+let login: boolean = false;
+let username: string | undefined;
+
 export default function addRouters(app: any, con?: Connection): void {
   const messageRouter: Router = Router();
   const accountRouter: Router = Router();
   const mainRouter: Router = Router();
   const templates = createHtmlTemplates();
-  let login: boolean = false;
-  let username: string;
 
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use(bodyParser.json());
 
+  handleAccountRouter(accountRouter, con);
+
+  messageRouter.post('/', (req, res) => {
+    if (req.body && con) {
+      con.query(`INSERT INTO msg (nick, text) VALUES ("${username}", "${req.body.message}")`);
+    }
+    res.redirect('/');
+  });
+
+  mainRouter.get('/', (req, res) => {
+    if (con && login) {
+      con.query('SELECT nick, text FROM msg', (err, result) => {
+        let returnedMessage = '<div>';
+
+        for (const message of result) {
+          returnedMessage += `<span>[<b>${message.nick}</b>] >> ${message.text}</span><br>`;
+        }
+        returnedMessage += '</div>' + templates.messageForm;
+        res.send(returnedMessage);
+      });
+    } else if (con) {
+      res.redirect('/account');
+    }
+  });
+
+  app.use('/message', messageRouter);
+  app.use('/account', accountRouter);
+  app.use('/', mainRouter);
+}
+
+function handleAccountRouter(accountRouter: Router, con?: Connection) {
+  const templates = createHtmlTemplates();
   accountRouter.get('/', (req, res) => {
     res.send(templates.accountButtons);
   });
@@ -56,31 +89,4 @@ export default function addRouters(app: any, con?: Connection): void {
       res.redirect('/account/register');
     }
   });
-
-  messageRouter.post('/', (req, res) => {
-    if (req.body && con) {
-      con.query(`INSERT INTO msg (nick, text) VALUES ("${username}", "${req.body.message}")`);
-    }
-    res.redirect('/');
-  });
-
-  mainRouter.get('/', (req, res) => {
-    if (con && login) {
-      con.query('SELECT nick, text FROM msg', (err, result) => {
-        let returnedMessage = '<div>';
-
-        for (const message of result) {
-          returnedMessage += `<span>[<b>${message.nick}</b>] >> ${message.text}</span><br>`;
-        }
-        returnedMessage += '</div>' + templates.messageForm;
-        res.send(returnedMessage);
-      });
-    } else if (con) {
-      res.redirect('/account');
-    }
-  });
-
-  app.use('/message', messageRouter);
-  app.use('/account', accountRouter);
-  app.use('/', mainRouter);
 }
